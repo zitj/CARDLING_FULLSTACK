@@ -1,15 +1,19 @@
-// src/routes/auth.ts
-
 import express from 'express';
 import bcrypt from 'bcrypt';
 import pool from '../db/connection';
 import { User } from '../models/User';
+import jwt from 'jsonwebtoken';
+import { config } from 'dotenv';
+
+config();
 
 const router = express.Router();
 
+const JWT_SECRET = process.env.JWT_SECRET || 'your_secret_key';
 // Register a new user
 router.post('/register', async (req, res) => {
 	const { username, email, password } = req.body;
+	console.log('JWT SECRET KEY: ', JWT_SECRET);
 	try {
 		// Check if the user already exists
 		const userExistsQuery = 'SELECT * FROM users WHERE username = $1 OR email = $2';
@@ -31,9 +35,14 @@ router.post('/register', async (req, res) => {
 		const result = await pool.query(newUserQuery, newUserValues);
 
 		const newUser: User = result.rows[0];
-		// delete newUser.password; // Remove password from the response
+		delete newUser.password; // Remove password from the response
+		const token = jwt.sign(
+			{ id: newUser.id, username: newUser.username, email: newUser.email },
+			JWT_SECRET,
+			{ expiresIn: '1h' } // Token expiration time
+		);
 
-		res.status(201).json(newUser);
+		res.status(201).json({ newUser, token });
 		console.log('Uspelo jeee! ^_^');
 	} catch (error) {
 		console.error('Error registering user:', error);

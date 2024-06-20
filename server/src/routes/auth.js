@@ -7,10 +7,15 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const connection_1 = __importDefault(require("../db/connection"));
+const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const dotenv_1 = require("dotenv");
+(0, dotenv_1.config)();
 const router = express_1.default.Router();
+const JWT_SECRET = process.env.JWT_SECRET || 'your_secret_key';
 // Register a new user
 router.post('/register', async (req, res) => {
     const { username, email, password } = req.body;
+    console.log('JWT SECRET KEY: ', JWT_SECRET);
     try {
         // Check if the user already exists
         const userExistsQuery = 'SELECT * FROM users WHERE username = $1 OR email = $2';
@@ -28,8 +33,10 @@ router.post('/register', async (req, res) => {
         const newUserValues = [username, email, hashedPassword];
         const result = await connection_1.default.query(newUserQuery, newUserValues);
         const newUser = result.rows[0];
-        // delete newUser.password; // Remove password from the response
-        res.status(201).json(newUser);
+        delete newUser.password; // Remove password from the response
+        const token = jsonwebtoken_1.default.sign({ id: newUser.id, username: newUser.username, email: newUser.email }, JWT_SECRET, { expiresIn: '1h' } // Token expiration time
+        );
+        res.status(201).json({ newUser, token });
         console.log('Uspelo jeee! ^_^');
     }
     catch (error) {
