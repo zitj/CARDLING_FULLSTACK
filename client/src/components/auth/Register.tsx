@@ -4,8 +4,10 @@ import { useDispatch } from 'react-redux';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store';
 import { register } from '../../reducers/auth/actions/authActions';
+import { useNavigate } from 'react-router-dom';
 
 const RegisterForm: React.FC = () => {
+	const navigate = useNavigate();
 	const [username, setUsername] = useState('');
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
@@ -13,9 +15,10 @@ const RegisterForm: React.FC = () => {
 
 	const { registering, registrationSuccess, error } = useSelector((state: RootState) => state.auth);
 
-	const handleSubmit = (e: React.FormEvent) => {
+	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
-		dispatch(register(username, email, password));
+		await dispatch(register(username, email, password));
+		navigate('/home');
 	};
 	return (
 		<div>
@@ -38,7 +41,7 @@ const RegisterForm: React.FC = () => {
 				</button>
 			</form>
 			{registrationSuccess && <p>Registration successful!</p>}
-			{/* {error && <p>Error: {error}</p>} */}
+			{!registrationSuccess && error && <p>Error: {typeof error === 'string' ? error : error.error}</p>}
 		</div>
 	);
 };

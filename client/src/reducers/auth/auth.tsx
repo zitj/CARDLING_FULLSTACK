@@ -29,9 +29,15 @@ const authReducer = (state = initialState, action: AuthAction): AuthState => {
 		case 'REGISTER_REQUEST':
 			return { ...state, registering: true };
 		case 'REGISTER_SUCCESS':
-			return { ...state, registering: false, registrationSuccess: true };
+			return { ...state, registering: false, isAuthenticated: true, registrationSuccess: true };
 		case 'REGISTER_FAILURE':
 			return { ...state, registering: false, error: action.payload };
+		// other auth and registration-related actions
+		case 'IS_AUTHENTICATED':
+			return { ...state, isAuthenticated: true };
+		// other auth and registration-related actions
+		case 'LOGOUT':
+			return { ...state, isAuthenticated: false, user: null };
 		// other auth and registration-related actions
 		default:
 			return state;

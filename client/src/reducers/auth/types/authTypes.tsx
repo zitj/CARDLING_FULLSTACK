@@ -5,11 +5,15 @@ export enum AuthActionTypes {
 	REGISTER_REQUEST = 'REGISTER_REQUEST',
 	REGISTER_SUCCESS = 'REGISTER_SUCCESS',
 	REGISTER_FAILURE = 'REGISTER_FAILURE',
+	IS_AUTHENTICATED = 'IS_AUTHENTICATED',
 	LOGOUT = 'LOGOUT',
 }
 
 interface LoginRequestAction {
 	type: AuthActionTypes.LOGIN_REQUEST;
+}
+interface IsAuthenticated {
+	type: AuthActionTypes.IS_AUTHENTICATED;
 }
 
 interface LoginSuccessAction {
@@ -45,4 +49,4 @@ interface LogoutAction {
 	type: AuthActionTypes.LOGOUT;
 }
 
-export type AuthAction = LoginRequestAction | LoginSuccessAction | LoginFailureAction | RegisterRequestAction | RegisterSuccessAction | RegisterFailureAction | LogoutAction;
+export type AuthAction = LoginRequestAction | LoginSuccessAction | LoginFailureAction | RegisterRequestAction | RegisterSuccessAction | RegisterFailureAction | LogoutAction | IsAuthenticated;

@@ -1,6 +1,7 @@
 import { Dispatch } from 'redux';
 import { AuthActionTypes, AuthAction } from '../types/authTypes';
 import axios from 'axios';
+import { parseJwt } from '../../../utilities/authUtils';
 
 // Login actions
 export const loginRequest = (): AuthAction => ({ type: AuthActionTypes.LOGIN_REQUEST });
@@ -33,12 +34,12 @@ export const registerFailure = (error: string): AuthAction => ({
 	type: AuthActionTypes.REGISTER_FAILURE,
 	payload: { error },
 });
+export const logoutSuccess = (): AuthAction => ({ type: AuthActionTypes.LOGOUT });
 
 export const register = (username: string, email: string, password: string): any => {
 	return async (dispatch: Dispatch<AuthAction>) => {
 		dispatch(registerRequest());
 		try {
-			// Simulate API call
 			await apiRegister(username, email, password);
 			dispatch(registerSuccess());
 		} catch (error: any) {
@@ -79,12 +80,44 @@ const apiLogin = async (username: string, password: string): Promise<{ username:
 
 const apiRegister = async (username: string, email: string, password: string): Promise<void> => {
 	try {
-		await axios.post('http://localhost:3000/auth/register', { username, email, password });
+		const response = await axios.post('http://localhost:3000/auth/register', { username, email, password });
+		const { token } = response.data;
+		localStorage.setItem('token', token);
 	} catch (error: any) {
 		if (axios.isAxiosError(error) && error.response) {
 			throw new Error(error.response.data.message || 'Registration failed');
 		} else {
 			throw new Error('Registration failed');
+		}
+	}
+};
+
+export const logout = (): any => {
+	localStorage.removeItem('token');
+	return (dispatch: Dispatch<AuthAction>) => {
+		dispatch(logoutSuccess());
+	};
+};
+
+export const isAuthenticated = (): boolean => {
+	const token = localStorage.getItem('token');
+	return token ? true : false;
+};
+
+export const getAuthHeaders = (): any => {
+	const token = localStorage.getItem('token');
+	return token ? { Authorization: `Bearer ${token}` } : {};
+};
+
+export const initializeAuthentication = (): any => (dispatch: Dispatch<AuthAction>) => {
+	const token = localStorage.getItem('token');
+	if (token) {
+		try {
+			const decodedToken = parseJwt(token);
+			const username = decodedToken ? decodedToken.username : null;
+			dispatch(loginSuccess(username));
+		} catch (error) {
+			dispatch(loginFailure('Failed to decode token'));
 		}
 	}
 };
